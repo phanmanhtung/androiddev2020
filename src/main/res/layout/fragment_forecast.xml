@@ -3,12 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#008080"
     tools:context=".ForecastFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/thursday"
+        android:textColor="#FFFFFF"
+        android:textSize="40sp" />
+
+    <ImageView
+        android:layout_width="177dp"
+        android:layout_height="244dp"
+        android:layout_marginLeft="100dp"
+        android:layout_marginTop="30dp"
+        android:contentDescription="@string/description"
+        android:src="@drawable/images" />
 
 </FrameLayout>
