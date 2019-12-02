@@ -12,7 +12,7 @@
         android:layout_width="300dp"
         android:layout_height="200dp"
         android:layout_marginLeft="50dp"
-        android:background="#96FFA4">
+        android:background="@color/color1">
 
         <ImageView
             android:layout_width="200dp"
