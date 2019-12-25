@@ -8,4 +8,6 @@
     <string name="sunny">sunny</string>
     <string name="temp1">30C</string>
     <string name="location">Paris</string>
+    <string name="settings">Settings</string>
+    <string name="user">User</string>
 </resources>
