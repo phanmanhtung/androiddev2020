@@ -1,5 +1,4 @@
 package vn.edu.usth.weather;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 import android.media.MediaPlayer;
@@ -12,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import android.os.Environment;
-
 import androidx.appcompat.widget.Toolbar;
 import android.widget.Toast;
 import android.os.Handler;
@@ -21,13 +19,19 @@ import android.os.Message;
 import com.google.android.material.tabs.TabLayout;
 import android.view.Menu;
 import android.app.ProgressDialog;
-
 import android.view.MenuInflater;
 import android.os.AsyncTask;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ImageView;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class WeatherActivity extends AppCompatActivity {
 
     MediaPlayer player;
+    URL url;
 
 
     final Handler handler = new Handler(Looper.getMainLooper()) {
@@ -85,49 +89,70 @@ public class WeatherActivity extends AppCompatActivity {
 
 
     }
-    private class AsyncTaskRunner extends AsyncTask<String,String,String> {
-        private String r;
+    private class AsyncTaskRunner extends AsyncTask<URL,Integer,Bitmap> {
+        Bitmap bitmap;
         ProgressDialog progressDialog;
 
         @Override
         protected void onPreExecute() {
-            // do some preparation here, if needed
+
+            try {
+                url = new URL("https://ictlab.usth.edu.vn/wp-content/uploads/logos/usth.png");
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
             progressDialog = ProgressDialog.show(WeatherActivity.this,
                     "Updating weather...",
                     "Wait for 5 seconds!");
         }
 
         @Override
-        protected String doInBackground(String... params) {
+        protected Bitmap doInBackground(URL... urls) {
             try {
                 Thread.sleep(5000);
-                r = "Sleep for 5 seconds";
+                // Make a request to server
+                HttpURLConnection connection =
+                        (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setDoInput(true);
+                // allow reading response code and response dataconnection.
+                connection.connect();
+                // Receive response
+                int response = connection.getResponseCode();
+                Log.i("USTHWeather", "The response is: " + response);
+                InputStream is = connection.getInputStream();
+                // Process image response
+                bitmap = BitmapFactory.decodeStream(is);
+
+                connection.disconnect();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                r = e.getMessage();
+
             } catch (Exception e) {
                 e.printStackTrace();
-                r = e.getMessage();
+
             }
 
-            return r;
+            return bitmap;
         }
 
         @Override
-        protected void onPostExecute(String result) {
-            // execution of result of Long time consuming operation
+        protected void onPostExecute(Bitmap bitmap) {
+
+            ImageView logo = (ImageView) findViewById(R.id.logo);
+            logo.setImageBitmap(bitmap);
             progressDialog.dismiss();
-            // Assume that we got our data from server
+
             Bundle bundle = new Bundle();
             bundle.putString("server_response", "some sample json here");
-            // notify main thread
+
             Message msg = new Message();
             msg.setData(bundle);
             handler.sendMessage(msg);
         }
 
         @Override
-        protected void onProgressUpdate(String... text) {
+        protected void onProgressUpdate(Integer... integers) {
             // Do something here
         }
 
@@ -148,8 +173,7 @@ public class WeatherActivity extends AppCompatActivity {
 
         switch (item.getItemId()){
             case R.id.refresh:
-                AsyncTaskRunner runner = new AsyncTaskRunner();
-                runner.execute("5000");
+                new AsyncTaskRunner().execute(url);
                 return true;
             case R.id.settings:
                 Intent intent = new Intent(this,MainActivity.class);
