@@ -15,14 +15,17 @@ import android.os.Environment;
 import android.content.res.AssetFileDescriptor;
 import androidx.appcompat.widget.Toolbar;
 import android.widget.Toast;
-
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import com.google.android.material.tabs.TabLayout;
 import android.view.Menu;
 
 import android.view.MenuInflater;
 
 public class WeatherActivity extends AppCompatActivity {
-    private Toolbar mTopToolbar;
+
+
     MediaPlayer player;
 
     @Override
@@ -48,6 +51,32 @@ public class WeatherActivity extends AppCompatActivity {
         player = MediaPlayer.create(WeatherActivity.this, R.raw.mydearest);
         player.start();
 
+
+        final Handler handler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                String content = msg. getData(). getString("server_response");
+                Toast.makeText(getApplicationContext(),content,Toast.LENGTH_LONG).show();
+            }
+        };
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread. sleep(5000);
+                }
+                catch (InterruptedException e) {
+                    e. printStackTrace();
+                }
+                Bundle bundle = new Bundle();
+                bundle.putString("server-response", "some sample json here");
+
+                Message msg = new Message();
+                msg. setData(bundle);
+                handler. sendMessage(msg);
+            }
+        });
+        t. start();
     }
 
     @Override
