@@ -27,6 +27,11 @@ import android.widget.ImageView;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.Volley;
 
 public class WeatherActivity extends AppCompatActivity {
 
@@ -88,6 +93,32 @@ public class WeatherActivity extends AppCompatActivity {
         t. start();
 
 
+    }
+
+    private void request(){
+        // once, should be performed once per app instance
+        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+        // a listener (kinda similar to onPostExecute())
+        Response.Listener<Bitmap> listener =
+                new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap response) {
+                        ImageView iv = (ImageView) findViewById(R.id.logo);
+                        iv.setImageBitmap(response);
+                    }
+                };
+        // a simple request to the required image
+        ImageRequest imageRequest = new ImageRequest(
+                "https://ictlab.usth.edu.vn/wp-content/uploads/logos/usth.png",
+                listener, 0, 0, ImageView.ScaleType.FIT_CENTER,
+                Bitmap.Config.ARGB_8888, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(WeatherActivity.this, "Response is: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+        // go!
+        queue. add(imageRequest);
     }
     private class AsyncTaskRunner extends AsyncTask<URL,Integer,Bitmap> {
         Bitmap bitmap;
@@ -173,7 +204,7 @@ public class WeatherActivity extends AppCompatActivity {
 
         switch (item.getItemId()){
             case R.id.refresh:
-                new AsyncTaskRunner().execute(url);
+                request();
                 return true;
             case R.id.settings:
                 Intent intent = new Intent(this,MainActivity.class);
