@@ -12,7 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import android.os.Environment;
-import android.content.res.AssetFileDescriptor;
+
 import androidx.appcompat.widget.Toolbar;
 import android.widget.Toast;
 import android.os.Handler;
@@ -20,13 +20,25 @@ import android.os.Looper;
 import android.os.Message;
 import com.google.android.material.tabs.TabLayout;
 import android.view.Menu;
+import android.app.ProgressDialog;
 
 import android.view.MenuInflater;
+import android.os.AsyncTask;
 
 public class WeatherActivity extends AppCompatActivity {
 
-
     MediaPlayer player;
+
+
+    final Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            // This method is executed in main thread
+            String content = msg.getData().getString("server_response");
+            Toast.makeText(getApplicationContext(), content, Toast.LENGTH_LONG).show();
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,15 +63,8 @@ public class WeatherActivity extends AppCompatActivity {
         player = MediaPlayer.create(WeatherActivity.this, R.raw.mydearest);
         player.start();
 
-
-        final Handler handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                String content = msg. getData(). getString("server_response");
-                Toast.makeText(getApplicationContext(),content,Toast.LENGTH_LONG).show();
-            }
-        };
         Thread t = new Thread(new Runnable() {
+
             @Override
             public void run() {
                 try {
@@ -77,6 +82,55 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
         t. start();
+
+
+    }
+    private class AsyncTaskRunner extends AsyncTask<String,String,String> {
+        private String r;
+        ProgressDialog progressDialog;
+
+        @Override
+        protected void onPreExecute() {
+            // do some preparation here, if needed
+            progressDialog = ProgressDialog.show(WeatherActivity.this,
+                    "Updating weather...",
+                    "Wait for 5 seconds!");
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                Thread.sleep(5000);
+                r = "Sleep for 5 seconds";
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                r = e.getMessage();
+            } catch (Exception e) {
+                e.printStackTrace();
+                r = e.getMessage();
+            }
+
+            return r;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            // execution of result of Long time consuming operation
+            progressDialog.dismiss();
+            // Assume that we got our data from server
+            Bundle bundle = new Bundle();
+            bundle.putString("server_response", "some sample json here");
+            // notify main thread
+            Message msg = new Message();
+            msg.setData(bundle);
+            handler.sendMessage(msg);
+        }
+
+        @Override
+        protected void onProgressUpdate(String... text) {
+            // Do something here
+        }
+
     }
 
     @Override
@@ -94,7 +148,8 @@ public class WeatherActivity extends AppCompatActivity {
 
         switch (item.getItemId()){
             case R.id.refresh:
-                Toast.makeText(WeatherActivity.this, "Action clicked", Toast.LENGTH_LONG).show();
+                AsyncTaskRunner runner = new AsyncTaskRunner();
+                runner.execute("5000");
                 return true;
             case R.id.settings:
                 Intent intent = new Intent(this,MainActivity.class);
@@ -132,7 +187,6 @@ public class WeatherActivity extends AppCompatActivity {
 
 
     }
-
 
 
     @Override
